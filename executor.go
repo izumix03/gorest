@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
-	"log"
 )
 
 func (cli *client) Execute() (result interface{}, err error) {
@@ -65,6 +65,14 @@ func (cli *client) buildRequest() (req *http.Request, err error) {
 }
 
 func (cli *client) buildParams() (io.Reader, error) {
+	if cli.isParamStruct {
+		var err error
+		cli.params, err = json.Marshal(cli.params)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	switch cli.contentType {
 	case jsonContent:
 		jsonBytes, ok := cli.params.([]byte)

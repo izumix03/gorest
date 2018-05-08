@@ -1,48 +1,54 @@
 package gorest
 
-// New requires base url for reuse this instance.
+// Get requires base url for reuse this instance.
 // BaseURL includes protocol like `http://` or `https://`
 // ex. https://api.github.com/repos/
-func New(baseURL string) MethodSelector {
+func Get(baseURL string) TerminalOperator {
 	return &client{
 		baseURL:     baseURL,
 		contentType: jsonContent,
+		method:      get,
 	}
 }
 
-// MethodSelector sets method
-// for set param call apigw.Param
-// for set path call apigw.Path
-type MethodSelector interface {
-	Get() TerminalOperator
-	Post() TerminalOperator
+// Post requires base url for reuse this instance.
+// BaseURL includes protocol like `http://` or `https://`
+// ex. https://api.github.com/repos/
+func Post(baseURL string) TerminalOperator {
+	return &client{
+		baseURL:     baseURL,
+		contentType: jsonContent,
+		method:      post,
+	}
 }
 
 // TerminalOperator executes web api and process result
 type TerminalOperator interface {
 	// endpoint
-	AddPath(path string) TerminalOperator
-	AddURLParam(key string, value string) TerminalOperator
+	Path(path string) TerminalOperator
+	URLParam(key string, value string) TerminalOperator
 
 	// basic auth
-	SetBasicAuth(username string, password string) TerminalOperator
+	BasicAuth(username string, password string) TerminalOperator
 
 	// header
-	AddJSONHeader(key, value string) TerminalOperator
+	Header(key, value string) TerminalOperator
 
 	// body
-	SetJSON(json []byte) Executor
-	SetJSONString(json string) Executor
-	AddURLEncoded(key string, value string) URLEncoded
-	AddURLEncodedList(key string, values []string) URLEncoded
+	JSON(json []byte) Executor
+	JSONString(json string) Executor
+	JSONStruct(data interface{}) Executor
+
+	URLEncoded(key string, value string) URLEncoded
+	URLEncodedList(key string, values []string) URLEncoded
 
 	// execute
 	Executor
 }
 
 type URLEncoded interface {
-	AddURLEncoded(key string, value string) URLEncoded
-	AddURLEncodedList(key string, values []string) URLEncoded
+	URLEncoded(key string, value string) URLEncoded
+	URLEncodedList(key string, values []string) URLEncoded
 	Executor
 }
 
@@ -52,15 +58,16 @@ type Executor interface {
 }
 
 type client struct {
-	method      RequestMethod
-	contentType ContentType
-	baseURL     string
-	path        []string
-	urlParams   []string
-	username    *string
-	passwd      *string
-	headers     map[string]string
-	params      interface{}
+	method        RequestMethod
+	contentType   ContentType
+	baseURL       string
+	path          []string
+	urlParams     []string
+	username      *string
+	passwd        *string
+	headers       map[string]string
+	params        interface{}
+	isParamStruct bool
 }
 
 const (
