@@ -46,12 +46,14 @@ type TerminalOperator interface {
 	Executor
 }
 
+// URLEncoded provides methods for sets url encoded body
 type URLEncoded interface {
 	URLEncoded(key string, value string) URLEncoded
 	URLEncodedList(key string, values []string) URLEncoded
 	Executor
 }
 
+// Executor provides methods for executing api
 type Executor interface {
 	Unmarshal(out interface{}) (err error)
 	Execute() (result interface{}, err error)

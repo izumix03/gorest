@@ -13,10 +13,12 @@ import (
 	"strings"
 )
 
+// Execute executes api and return result, error
 func (cli *client) Execute() (result interface{}, err error) {
 	return result, cli.Unmarshal(&result)
 }
 
+// Unmarshal executes api and sets out
 func (cli *client) Unmarshal(out interface{}) (err error) {
 	req, err := cli.buildRequest()
 	if err != nil {
