@@ -1,4 +1,5 @@
 # gorest
+[![Go Report Card](https://goreportcard.com/badge/github.com/izumix03/gorest)](https://goreportcard.com/report/github.com/izumix03/gorest)
 
 ## install 
 ```$xslt
