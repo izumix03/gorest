@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"kirby-notifier/app/util/logger"
 	"net/http"
 	"net/url"
 	"strings"
+	"log"
 )
 
 func (cli *client) Execute() (result interface{}, err error) {
@@ -34,7 +34,7 @@ func (cli *client) Unmarshal(out interface{}) (err error) {
 
 	err = decodeBody(resp, &out, nil)
 	if err != nil {
-		logger.WarnF(`status is %s`, resp.Status)
+		log.Printf(`status is %s`, resp.Status)
 	}
 	return
 }
