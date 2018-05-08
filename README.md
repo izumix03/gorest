@@ -1,5 +1,10 @@
 # gorest
 
+## install 
+```$xslt
+go get github.com/izumix03/gorest
+```
+
 ## usage
 ```$xslt
 result, err := gorest.Get(`http://example.com`).
