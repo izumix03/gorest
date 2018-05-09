@@ -9,7 +9,7 @@ go get github.com/izumix03/gorest
 
 ## usage
 ```$xslt
-result, err := gorest.Get(`http://example.com`).
+res, err := gorest.Get(`http://example.com`).
 		Path(`/ticket`).
 		URLParam(`name`, `foo`).
 		Execute()
@@ -17,7 +17,7 @@ result, err := gorest.Get(`http://example.com`).
 
 
 ```$xslt
-result, err := gorest.Post(`http://example.com`).
+res, err := gorest.Post(`http://example.com`).
 		Path(`/ticket`).
 		JSONStruct(Foo{name: `bar`}).
 		Execute()
