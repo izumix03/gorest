@@ -1,5 +1,7 @@
 package gorest
 
+import "net/http"
+
 // Get requires base url for reuse this instance.
 // BaseURL includes protocol like `http://` or `https://`
 // ex. https://api.github.com/repos/
@@ -55,8 +57,8 @@ type URLEncoded interface {
 
 // Executor provides methods for executing api
 type Executor interface {
-	Unmarshal(out interface{}) (err error)
-	Execute() (result interface{}, err error)
+	Unmarshal(out interface{}) (resp *http.Response, err error)
+	Execute() (resp *http.Response, err error)
 }
 
 type client struct {
