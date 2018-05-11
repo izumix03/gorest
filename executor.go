@@ -27,6 +27,19 @@ func (cli *client) Execute() (resp *http.Response, err error) {
 	return doRequest(req)
 }
 
+func (cli *client) Do() (statusCode int, out interface{}, err error) {
+	resp, err := cli.Execute()
+	if err != nil {
+		return
+	}
+	err = decodeBody(resp, &out, nil)
+	if err != nil {
+		log.Printf(`status is %s`, resp.Status)
+	}
+	statusCode = resp.StatusCode
+	return
+}
+
 // Unmarshal executes api and sets out
 func (cli *client) Unmarshal(out interface{}) (resp *http.Response, err error) {
 	resp, err = cli.Execute()

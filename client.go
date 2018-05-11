@@ -59,6 +59,7 @@ type URLEncoded interface {
 type Executor interface {
 	Unmarshal(out interface{}) (resp *http.Response, err error)
 	Execute() (resp *http.Response, err error)
+	Do() (statusCode int, out interface{}, err error)
 }
 
 type client struct {
