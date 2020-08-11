@@ -7,42 +7,81 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
 // Execute executes api and return result, error
-func (cli *client) Execute() (resp *http.Response, err error) {
+func (cli *client) Execute() (*http.Response, error) {
 	req, err := cli.buildRequest()
 	if err != nil {
-		return
-	}
-
-	if err != nil {
-		return
+		return nil, err
 	}
 
 	return doRequest(req)
 }
 
-// Unmarshal executes api and sets out
-func (cli *client) Unmarshal(out interface{}) (resp *http.Response, err error) {
-	resp, err = cli.Execute()
+func (cli *client) HandleBody(f func(body []uint8) error) error {
+	req, err := cli.buildRequest()
 	if err != nil {
-		return
+		return err
 	}
 
-	err = decodeBody(resp, &out, nil)
+	res, err := doRequest(req)
 	if err != nil {
-		log.Printf(`status is %s`, resp.Status)
+		return err
 	}
-	return
+	if cli.handleError != nil {
+		res, err = func() (*http.Response, error) {
+			return cli.handleError(req, res)
+		}()
+		if err != nil {
+			return err
+		}
+	}
+	defer CloseBody(res.Body)
+
+	if err := cli.handleByStatusCode(res); err != nil {
+		return err
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	return f(body)
 }
 
-func (cli *client) buildRequest() (req *http.Request, err error) {
-	endpoint := concat(cli.baseURL, strings.Join(cli.path, ``))
+func CloseBody(body io.ReadCloser) {
+	_, _ = io.Copy(ioutil.Discard, body)
+	_ = body.Close()
+}
+
+func (cli *client) handleByStatusCode(res *http.Response) error {
+	if res.StatusCode >= 400 {
+		var responseBody []byte
+		if body, err := ioutil.ReadAll(res.Body); err == nil {
+			responseBody = body
+		}
+		return &InvalidStatusCodeError{
+			StatusCode:   res.StatusCode,
+			ResponseBody: responseBody,
+		}
+	}
+	return nil
+}
+
+type InvalidStatusCodeError struct {
+	StatusCode   int
+	ResponseBody []byte
+}
+
+func (i *InvalidStatusCodeError) Error() string {
+	return fmt.Sprintf("StatusCode: %d, responseBody: %v", i.StatusCode, string(i.ResponseBody))
+}
+
+func (cli *client) buildRequest() (*http.Request, error) {
+	endpoint := concat(cli.baseURL, strings.Join(cli.paths, ``))
 	urlParamString := strings.Join(cli.urlParams, `&`)
 	if urlParamString != `` {
 		endpoint = join(endpoint, urlParamString, `?`)
@@ -50,20 +89,24 @@ func (cli *client) buildRequest() (req *http.Request, err error) {
 
 	body, err := cli.buildParams()
 	if err != nil {
-		return
+		return nil, err
 	}
-	req, err = http.NewRequest(string(cli.method), endpoint, body)
-	req.Header.Set(`Content-Type`, string(cli.contentType))
 
+	req, err := http.NewRequest(string(cli.method), endpoint, body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set(`Content-Type`, string(cli.contentType))
 	for key, val := range cli.headers {
 		req.Header.Set(key, val)
 	}
 
-	if cli.username != nil && cli.passwd != nil {
-		req.SetBasicAuth(*cli.username, *cli.passwd)
+	if cli.username != nil && cli.password != nil {
+		req.SetBasicAuth(*cli.username, *cli.password)
 	}
-	fmt.Printf("%+v\n", req)
-	return
+
+	return req, nil
 }
 
 func (cli *client) buildParams() (io.Reader, error) {
@@ -77,17 +120,21 @@ func (cli *client) buildParams() (io.Reader, error) {
 
 	switch cli.contentType {
 	case jsonContent:
+		if cli.params == nil {
+			return nil, nil
+		}
 		jsonBytes, ok := cli.params.([]byte)
 		if !ok {
-			return nil, nil
+			// maybe JSONStruct receive invalid data
+			return nil, errors.New("invalid body")
 		}
 		return bytes.NewBuffer(jsonBytes), nil
 	case urlEncoded:
-		vals, ok := cli.params.(url.Values)
+		values, ok := cli.params.(url.Values)
 		if !ok {
 			return nil, errors.New(`invalid request body parameters`)
 		}
-		return strings.NewReader(vals.Encode()), nil
+		return strings.NewReader(values.Encode()), nil
 	default:
 		return nil, errors.New(`unsupported content type for request body`)
 	}
@@ -99,14 +146,15 @@ func doRequest(req *http.Request) (*http.Response, error) {
 	return client.Do(req)
 }
 
-// decodeBody decode response body and stores it in the value pointed to by out
-func decodeBody(resp *http.Response, out interface{}, f io.WriteCloser) error {
-	defer resp.Body.Close()
-	// Symmetric API Testing
-	if f != nil {
-		resp.Body = ioutil.NopCloser(io.TeeReader(resp.Body, f))
-		defer f.Close()
-	}
-	decoder := json.NewDecoder(resp.Body)
-	return decoder.Decode(out)
-}
+//
+//// decodeBody decode response body and stores it in the value pointed to by out
+//func decodeBody(resp *http.Response, out interface{}, f io.WriteCloser) error {
+//	defer resp.Body.Close()
+//	// Symmetric API Testing
+//	if f != nil {
+//		resp.Body = ioutil.NopCloser(io.TeeReader(resp.Body, f))
+//		defer f.Close()
+//	}
+//	decoder := json.NewDecoder(resp.Body)
+//	return decoder.Decode(out)
+//}

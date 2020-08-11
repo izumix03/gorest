@@ -2,17 +2,6 @@ package gorest
 
 import "net/http"
 
-// Get requires base url for reuse this instance.
-// BaseURL includes protocol like `http://` or `https://`
-// ex. https://api.github.com/repos/
-func Get(baseURL string) TerminalOperator {
-	return &client{
-		baseURL:     baseURL,
-		contentType: jsonContent,
-		method:      get,
-	}
-}
-
 // Post requires base url for reuse this instance.
 // BaseURL includes protocol like `http://` or `https://`
 // ex. https://api.github.com/repos/
@@ -24,10 +13,40 @@ func Post(baseURL string) TerminalOperator {
 	}
 }
 
+func Put(baseURL string) TerminalOperator {
+	return &client{
+		baseURL:     baseURL,
+		contentType: jsonContent,
+		method:      put,
+	}
+}
+
+func Get(baseURL string) TerminalOperator {
+	return &client{
+		baseURL:     baseURL,
+		contentType: jsonContent,
+		method:      get,
+	}
+}
+
+type client struct {
+	method        requestMethod
+	contentType   contentType
+	baseURL       string
+	paths         []string
+	urlParams     []string
+	username      *string
+	password      *string
+	headers       map[string]string
+	params        interface{}
+	isParamStruct bool
+	handleError   func(*http.Request, *http.Response) (*http.Response, error)
+}
+
 // TerminalOperator executes web api and process result
 type TerminalOperator interface {
 	// endpoint
-	Path(path string) TerminalOperator
+	Path(pathFmt string, args ...interface{}) TerminalOperator
 	URLParam(key string, value string) TerminalOperator
 
 	// basic auth
@@ -44,6 +63,9 @@ type TerminalOperator interface {
 	URLEncoded(key string, value string) URLEncoded
 	URLEncodedList(key string, values []string) URLEncoded
 
+	// if create new response, MUST close old res.Body
+	HandleResponse(func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler
+
 	// execute
 	Executor
 }
@@ -57,32 +79,13 @@ type URLEncoded interface {
 
 // Executor provides methods for executing api
 type Executor interface {
-	Unmarshal(out interface{}) (resp *http.Response, err error)
 	Execute() (resp *http.Response, err error)
+	HandleBody(f func(body []uint8) error) error
+	// if create new response, MUST close old res.Body
+	HandleResponse(func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler
 }
 
-type client struct {
-	method        RequestMethod
-	contentType   ContentType
-	baseURL       string
-	path          []string
-	urlParams     []string
-	username      *string
-	passwd        *string
-	headers       map[string]string
-	params        interface{}
-	isParamStruct bool
+// ResponseHandler provides wrapper methods with handling error(ex. http status code)
+type ResponseHandler interface {
+	HandleBody(f func(body []uint8) error) error
 }
-
-const (
-	get         RequestMethod = `GET`
-	post                      = `POST`
-	jsonContent ContentType   = `application/json`
-	urlEncoded  ContentType   = `application/x-www-form-urlencoded`
-)
-
-// RequestMethod is method name like get, post
-type RequestMethod string
-
-// ContentType is api content type like application/json
-type ContentType string

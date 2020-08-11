@@ -2,11 +2,12 @@ package gorest
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 )
 
-func (cli *client) Path(path string) TerminalOperator {
-	cli.path = append(cli.path, path)
+func (cli *client) Path(pathFmt string, args ...interface{}) TerminalOperator {
+	cli.paths = append(cli.paths, fmt.Sprintf(pathFmt, args...))
 	return cli
 }
 
@@ -17,7 +18,7 @@ func (cli *client) URLParam(key string, value string) TerminalOperator {
 
 func (cli *client) BasicAuth(username string, password string) TerminalOperator {
 	cli.username = &username
-	cli.passwd = &password
+	cli.password = &password
 	return cli
 }
 
@@ -70,5 +71,10 @@ func (cli *client) Header(key, value string) TerminalOperator {
 		cli.headers = map[string]string{}
 	}
 	cli.headers[key] = value
+	return cli
+}
+
+func (cli *client) HandleResponse(f func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler {
+	cli.handleError = f
 	return cli
 }
