@@ -1,6 +1,9 @@
 package gorest
 
-import "net/http"
+import (
+	"io"
+	"net/http"
+)
 
 // Post requires base url for reuse this instance.
 // BaseURL includes protocol like `http://` or `https://`
@@ -56,12 +59,15 @@ type TerminalOperator interface {
 	Header(key, value string) TerminalOperator
 
 	// body
-	JSON(json []byte) Executor
-	JSONString(json string) Executor
-	JSONStruct(data interface{}) Executor
+	JSON(json []byte) JSONContent
+	JSONString(json string) JSONContent
+	JSONStruct(data interface{}) JSONContent
 
 	URLEncoded(key string, value string) URLEncoded
 	URLEncodedList(key string, values []string) URLEncoded
+
+	MultipartData(key string, value io.Reader) (Multipart, error)
+	MultipartAsFormFile(key string, fileName string, reader io.Reader) (Multipart, error)
 
 	// if create new response, MUST close old res.Body
 	HandleResponse(func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler
@@ -70,10 +76,24 @@ type TerminalOperator interface {
 	Executor
 }
 
+type JSONContent interface {
+	JSON(json []byte) JSONContent
+	JSONString(json string) JSONContent
+	JSONStruct(data interface{}) JSONContent
+	Executor
+}
+
 // URLEncoded provides methods for sets url encoded body
 type URLEncoded interface {
 	URLEncoded(key string, value string) URLEncoded
 	URLEncodedList(key string, values []string) URLEncoded
+	Executor
+}
+
+// Multipart provides methods for set multipart data(including file)
+type Multipart interface {
+	MultipartData(key string, value io.Reader) (Multipart, error)
+	MultipartAsFormFile(key string, fileName string, reader io.Reader) (Multipart, error)
 	Executor
 }
 
