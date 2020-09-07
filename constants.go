@@ -6,6 +6,7 @@ const (
 	put                       = "PUT"
 	jsonContent contentType   = "application/json"
 	urlEncoded  contentType   = "application/x-www-form-urlencoded"
+	notSet      contentType   = ""
 )
 
 // requestMethod is method name like get, post

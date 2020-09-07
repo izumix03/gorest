@@ -110,7 +110,7 @@ func (cli *client) buildRequest() (*http.Request, error) {
 }
 
 func (cli *client) buildParams() (io.Reader, error) {
-	if cli.isParamStruct {
+	if cli.hasJsonStruct {
 		var err error
 		cli.params, err = json.Marshal(cli.params)
 		if err != nil {
@@ -130,11 +130,23 @@ func (cli *client) buildParams() (io.Reader, error) {
 		}
 		return bytes.NewBuffer(jsonBytes), nil
 	case urlEncoded:
+		if cli.params == nil {
+			return nil, nil
+		}
 		values, ok := cli.params.(url.Values)
 		if !ok {
 			return nil, errors.New(`invalid request body parameters`)
 		}
 		return strings.NewReader(values.Encode()), nil
+	case notSet:
+		if len(cli.multipartSettings) == 0 {
+			return nil, nil
+		}
+		body, err := cli.setupMultipartRequest()
+		if err != nil {
+			return nil, fmt.Errorf(`invalid request body parameters, %s`, err)
+		}
+		return body, nil
 	default:
 		return nil, errors.New(`unsupported content type for request body`)
 	}
