@@ -1,3 +1,3 @@
-module github.com/dgrijalva/gorest
+module github.com/izumix03/gorest
 
 go 1.14
