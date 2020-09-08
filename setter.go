@@ -57,10 +57,9 @@ func (cli *client) URLEncoded(key string, value string) URLEncoded {
 	urlValues, ok := cli.params.(url.Values)
 	if !ok {
 		urlValues = url.Values{}
+		cli.params = urlValues
 	}
-
 	urlValues.Add(key, value)
-	cli.params = urlValues
 	cli.contentType = urlEncoded
 	return cli
 }
@@ -69,6 +68,7 @@ func (cli *client) URLEncodedList(key string, values []string) URLEncoded {
 	urlValues, ok := cli.params.(url.Values)
 	if !ok {
 		urlValues = url.Values{}
+		cli.params = urlValues
 	}
 	urlValues[key] = values
 	cli.contentType = urlEncoded

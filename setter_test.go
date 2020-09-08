@@ -2,6 +2,10 @@ package gorest
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 	"reflect"
 	"testing"
@@ -672,6 +676,185 @@ func Test_client_URLEncoded(t *testing.T) {
 			}
 			if got := cli.URLEncoded(tt.args.key, tt.args.value); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("URLEncoded() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_client_URLEncodedList(t *testing.T) {
+	type fields struct {
+		method      requestMethod
+		contentType contentType
+		baseURL     string
+		params      interface{}
+	}
+	type args struct {
+		key    string
+		values []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   URLEncoded
+	}{
+		{
+			name: "simple_set",
+			fields: fields{
+				method:      "POST",
+				contentType: "",
+				baseURL:     "https://sample.com",
+				params:      nil,
+			},
+			args: args{
+				key:    "key",
+				values: []string{"value"},
+			},
+			want: &client{
+				method:      "POST",
+				contentType: "application/x-www-form-urlencoded",
+				baseURL:     "https://sample.com",
+				params:      url.Values{"key": []string{"value"}},
+			},
+		},
+		{
+			name: "multi_set",
+			fields: fields{
+				method:      "POST",
+				contentType: "",
+				baseURL:     "https://sample.com",
+				params:      nil,
+			},
+			args: args{
+				key:    "key",
+				values: []string{"value", "value2"},
+			},
+			want: &client{
+				method:      "POST",
+				contentType: "application/x-www-form-urlencoded",
+				baseURL:     "https://sample.com",
+				params:      url.Values{"key": []string{"value", "value2"}},
+			},
+		},
+		{
+			name: "set_other_key",
+			fields: fields{
+				method:      "POST",
+				contentType: "",
+				baseURL:     "https://sample.com",
+				params:      url.Values{"key": []string{"value", "value2"}},
+			},
+			args: args{
+				key:    "key2",
+				values: []string{"value", "value2"},
+			},
+			want: &client{
+				method:      "POST",
+				contentType: "application/x-www-form-urlencoded",
+				baseURL:     "https://sample.com",
+				params:      url.Values{"key": []string{"value", "value2"}, "key2": []string{"value", "value2"}},
+			},
+		},
+		{
+			name: "replace_if_same_key",
+			fields: fields{
+				method:      "POST",
+				contentType: "",
+				baseURL:     "https://sample.com",
+				params:      url.Values{"key": []string{"value", "value2"}},
+			},
+			args: args{
+				key:    "key",
+				values: []string{"value3", "value4"},
+			},
+			want: &client{
+				method:      "POST",
+				contentType: "application/x-www-form-urlencoded",
+				baseURL:     "https://sample.com",
+				params:      url.Values{"key": []string{"value3", "value4"}},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cli := &client{
+				method:      tt.fields.method,
+				contentType: tt.fields.contentType,
+				baseURL:     tt.fields.baseURL,
+				params:      tt.fields.params,
+			}
+			if got := cli.URLEncodedList(tt.args.key, tt.args.values); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("URLEncodedList() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_client_HandleResponse(t *testing.T) {
+	changeTokenFunc := func(request *http.Request, response *http.Response) (*http.Response, error) {
+		if response.StatusCode == http.StatusUnauthorized {
+			_, _ = io.Copy(ioutil.Discard, response.Body)
+			_ = response.Body.Close()
+
+			request.Header.Set("X-Api-Key", "other token")
+			client := &http.Client{}
+			return client.Do(request)
+		}
+		return response, nil
+	}
+
+	type fields struct {
+		method      requestMethod
+		contentType contentType
+		baseURL     string
+		handleError func(*http.Request, *http.Response) (*http.Response, error)
+	}
+	type args struct {
+		f func(*http.Request, *http.Response) (*http.Response, error)
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   ResponseHandler
+	}{
+		{
+			name: "set_error_handler",
+			fields: fields{
+				method:      "POST",
+				contentType: "application/json",
+				baseURL:     "https://sample.com",
+				handleError: nil,
+			},
+			args: args{
+				f: changeTokenFunc,
+			},
+			want: &client{
+				method:      "POST",
+				contentType: "application/json",
+				baseURL:     "https://sample.com",
+				handleError: changeTokenFunc,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cli := &client{
+				method:      tt.fields.method,
+				contentType: tt.fields.contentType,
+				baseURL:     tt.fields.baseURL,
+				handleError: tt.fields.handleError,
+			}
+			got := cli.HandleResponse(tt.args.f)
+			if diff := cmp.Diff(got, tt.want,
+				cmp.AllowUnexported(client{}),
+				cmpopts.IgnoreFields(client{}, "handleError")); diff != "" {
+				t.Errorf("HandleResponse() = diff = %s", diff)
+				return
+			}
+
+			if cli.handleError == nil {
+				t.Error("HandleResponse() not set")
 			}
 		})
 	}

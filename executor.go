@@ -160,12 +160,12 @@ func doRequest(req *http.Request) (*http.Response, error) {
 
 //
 //// decodeBody decode response body and stores it in the value pointed to by out
-//func decodeBody(resp *http.Response, out interface{}, f io.WriteCloser) error {
+//func decodeBody(resp *http.Response, out interface{}, equals io.WriteCloser) error {
 //	defer resp.Body.Close()
 //	// Symmetric API Testing
-//	if f != nil {
-//		resp.Body = ioutil.NopCloser(io.TeeReader(resp.Body, f))
-//		defer f.Close()
+//	if equals != nil {
+//		resp.Body = ioutil.NopCloser(io.TeeReader(resp.Body, equals))
+//		defer equals.Close()
 //	}
 //	decoder := json.NewDecoder(resp.Body)
 //	return decoder.Decode(out)

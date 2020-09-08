@@ -50,34 +50,37 @@ type client struct {
 // TerminalOperator executes web api and process result
 type TerminalOperator interface {
 	// endpoint
+
 	Path(pathFmt string, args ...interface{}) TerminalOperator
 	URLParam(key string, value string) TerminalOperator
 
 	// basic auth
+
 	BasicAuth(username string, password string) TerminalOperator
 
 	// header
+
 	Header(key, value string) TerminalOperator
 
 	// body
+
 	JSON(json []byte) JSONContent
 	JSONString(json string) JSONContent
 	// JSONStruct requires struct, not pointer.
 	// if receive invalid, error occurs when executing.
 	JSONStruct(data interface{}) JSONContent
-
 	// URLEncoded add value if same key
 	URLEncoded(key string, value string) URLEncoded
 	// URLEncodedList replace values if same key
 	URLEncodedList(key string, values []string) URLEncoded
-
 	MultipartData(key string, value io.Reader) Multipart
 	MultipartAsFormFile(key string, fileName string, reader io.Reader) Multipart
-
-	// if create new response, MUST close old res.Body
+	// HandleResponse require response handler,
+	// if create a new response, MUST close old res.Body
 	HandleResponse(func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler
 
 	// execute
+
 	Executor
 }
 
@@ -110,7 +113,8 @@ type Multipart interface {
 type Executor interface {
 	Execute() (resp *http.Response, err error)
 	HandleBody(f func(body []uint8) error) error
-	// if create new response, MUST close old res.Body
+	// HandleResponse require response handler,
+	// if create a new response, MUST close old res.Body
 	HandleResponse(func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler
 }
 
