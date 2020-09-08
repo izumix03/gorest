@@ -19,7 +19,7 @@ func (cli *client) Execute() (*http.Response, error) {
 		return nil, err
 	}
 
-	return doRequest(req)
+	return cli.doRequest(req)
 }
 
 func (cli *client) HandleBody(f func(body []uint8) error) error {
@@ -28,7 +28,7 @@ func (cli *client) HandleBody(f func(body []uint8) error) error {
 		return err
 	}
 
-	res, err := doRequest(req)
+	res, err := cli.doRequest(req)
 	if err != nil {
 		return err
 	}
@@ -153,9 +153,11 @@ func (cli *client) buildParams() (io.Reader, error) {
 }
 
 // Do sends an HTTP request and returns an HTTP response
-func doRequest(req *http.Request) (*http.Response, error) {
-	client := &http.Client{}
-	return client.Do(req)
+func (cli *client) doRequest(req *http.Request) (*http.Response, error) {
+	if cli.client == nil {
+		cli.client = &http.Client{}
+	}
+	return cli.client.Do(req)
 }
 
 //

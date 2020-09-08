@@ -45,6 +45,7 @@ type client struct {
 	hasJsonStruct     bool
 	multipartSettings []multipartSetting
 	handleError       func(*http.Request, *http.Response) (*http.Response, error)
+	client            *http.Client
 }
 
 // TerminalOperator executes web api and process result
@@ -61,6 +62,9 @@ type TerminalOperator interface {
 	// header
 
 	Header(key, value string) TerminalOperator
+
+	// client
+	Client(client *http.Client) TerminalOperator
 
 	// body
 

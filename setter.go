@@ -30,6 +30,11 @@ func (cli *client) Header(key, value string) TerminalOperator {
 	return cli
 }
 
+func (cli *client) Client(client *http.Client) TerminalOperator {
+	cli.client = client
+	return cli
+}
+
 func (cli *client) JSON(json []byte) JSONContent {
 	if len(json) != 0 {
 		cli.params = json
