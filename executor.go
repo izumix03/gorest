@@ -155,7 +155,7 @@ func (cli *client) buildParams() (io.Reader, error) {
 // Do sends an HTTP request and returns an HTTP response
 func (cli *client) doRequest(req *http.Request) (*http.Response, error) {
 	if cli.client == nil {
-		cli.client = &http.Client{}
+		cli.client = http.DefaultClient
 	}
 	return cli.client.Do(req)
 }
