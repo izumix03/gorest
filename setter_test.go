@@ -830,30 +830,30 @@ func Test_client_HandleResponse(t *testing.T) {
 				f: changeTokenFunc,
 			},
 			want: &client{
-				method:      "POST",
-				contentType: "application/json",
-				baseURL:     "https://sample.com",
-				handleError: changeTokenFunc,
+				method:          "POST",
+				contentType:     "application/json",
+				baseURL:         "https://sample.com",
+				responseHandler: changeTokenFunc,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cli := &client{
-				method:      tt.fields.method,
-				contentType: tt.fields.contentType,
-				baseURL:     tt.fields.baseURL,
-				handleError: tt.fields.handleError,
+				method:          tt.fields.method,
+				contentType:     tt.fields.contentType,
+				baseURL:         tt.fields.baseURL,
+				responseHandler: tt.fields.handleError,
 			}
 			got := cli.HandleResponse(tt.args.f)
 			if diff := cmp.Diff(got, tt.want,
 				cmp.AllowUnexported(client{}),
-				cmpopts.IgnoreFields(client{}, "handleError")); diff != "" {
+				cmpopts.IgnoreFields(client{}, "responseHandler")); diff != "" {
 				t.Errorf("HandleResponse() = diff = %s", diff)
 				return
 			}
 
-			if cli.handleError == nil {
+			if cli.responseHandler == nil {
 				t.Error("HandleResponse() not set")
 			}
 		})

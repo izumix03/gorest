@@ -81,6 +81,6 @@ func (cli *client) URLEncodedList(key string, values []string) URLEncoded {
 }
 
 func (cli *client) HandleResponse(f func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler {
-	cli.handleError = f
+	cli.responseHandler = f
 	return cli
 }

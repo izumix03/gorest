@@ -32,9 +32,9 @@ func (cli *client) HandleBody(f func(body []uint8) error) error {
 	if err != nil {
 		return err
 	}
-	if cli.handleError != nil {
+	if cli.responseHandler != nil {
 		res, err = func() (*http.Response, error) {
-			return cli.handleError(req, res)
+			return cli.responseHandler(req, res)
 		}()
 		if err != nil {
 			return err

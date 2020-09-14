@@ -44,7 +44,7 @@ type client struct {
 	params            interface{}
 	hasJsonStruct     bool
 	multipartSettings []multipartSetting
-	handleError       func(*http.Request, *http.Response) (*http.Response, error)
+	responseHandler   func(*http.Request, *http.Response) (*http.Response, error)
 	client            *http.Client
 }
 
