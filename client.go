@@ -33,19 +33,20 @@ func Put(baseURL string) TerminalOperator {
 }
 
 type client struct {
-	method            requestMethod
-	contentType       contentType
-	baseURL           string
-	paths             []string
-	urlParams         []string
-	username          *string
-	password          *string
-	headers           map[string]string
-	params            interface{}
-	hasJsonStruct     bool
-	multipartSettings []multipartSetting
-	responseHandler   func(*http.Request, *http.Response) (*http.Response, error)
-	client            *http.Client
+	method               requestMethod
+	contentType          contentType
+	baseURL              string
+	paths                []string
+	urlParams            []string
+	username             *string
+	password             *string
+	headers              map[string]string
+	params               interface{}
+	hasJsonStruct        bool
+	hasRawFormUrlEncoded bool
+	multipartSettings    []multipartSetting
+	responseHandler      func(*http.Request, *http.Response) (*http.Response, error)
+	client               *http.Client
 }
 
 // TerminalOperator executes web api and process result
@@ -73,12 +74,17 @@ type TerminalOperator interface {
 	// JSONStruct requires struct, not pointer.
 	// if receive invalid, error occurs when executing.
 	JSONStruct(data interface{}) JSONContent
+
 	// URLEncoded add value if same key
 	URLEncoded(key string, value string) URLEncoded
 	// URLEncodedList replace values if same key
 	URLEncodedList(key string, values []string) URLEncoded
+	// URLEncodedString receives raw data, but never check
+	URLEncodedString(data string) URLEncoded
+
 	MultipartData(key string, value io.Reader) Multipart
 	MultipartAsFormFile(key string, fileName string, reader io.Reader) Multipart
+
 	// HandleResponse require response handler,
 	// if create a new response, MUST close old res.Body
 	HandleResponse(func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler
@@ -103,6 +109,8 @@ type URLEncoded interface {
 	URLEncoded(key string, value string) URLEncoded
 	// URLEncodedList replace values if same key
 	URLEncodedList(key string, values []string) URLEncoded
+	// URLEncodedString receives raw data, but never check
+	URLEncodedString(data string) URLEncoded
 	Executor
 }
 

@@ -80,6 +80,13 @@ func (cli *client) URLEncodedList(key string, values []string) URLEncoded {
 	return cli
 }
 
+func (cli *client) URLEncodedString(data string) URLEncoded {
+	cli.params = data
+	cli.contentType = urlEncoded
+	cli.hasRawFormUrlEncoded = true
+	return cli
+}
+
 func (cli *client) HandleResponse(f func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler {
 	cli.responseHandler = f
 	return cli

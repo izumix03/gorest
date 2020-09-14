@@ -125,13 +125,21 @@ func (cli *client) buildParams() (io.Reader, error) {
 		}
 		jsonBytes, ok := cli.params.([]byte)
 		if !ok {
-			// maybe JSONStruct receive invalid data
+			// JSONStruct can receive invalid data...
 			return nil, errors.New("invalid body")
 		}
 		return bytes.NewBuffer(jsonBytes), nil
 	case urlEncoded:
 		if cli.params == nil {
 			return nil, nil
+		}
+		if cli.hasRawFormUrlEncoded {
+			urlEncodedBytes, ok := cli.params.([]byte)
+			if !ok {
+				// this error never occur
+				return nil, errors.New("url encoded string cannot be converted bytes")
+			}
+			return bytes.NewBuffer(urlEncodedBytes), nil
 		}
 		values, ok := cli.params.(url.Values)
 		if !ok {
