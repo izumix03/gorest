@@ -1,7 +1,6 @@
 package gorest
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -123,23 +122,23 @@ func (cli *client) buildParams() (io.Reader, error) {
 		if cli.params == nil {
 			return nil, nil
 		}
-		jsonBytes, ok := cli.params.([]byte)
+		jsonString, ok := cli.params.(string)
 		if !ok {
 			// JSONStruct can receive invalid data...
 			return nil, errors.New("invalid body")
 		}
-		return bytes.NewBuffer(jsonBytes), nil
+		return strings.NewReader(jsonString), nil
 	case urlEncoded:
 		if cli.params == nil {
 			return nil, nil
 		}
 		if cli.hasRawFormUrlEncoded {
-			urlEncodedBytes, ok := cli.params.([]byte)
+			urlEncodedString, ok := cli.params.(string)
 			if !ok {
 				// this error never occur
 				return nil, errors.New("url encoded string cannot be converted bytes")
 			}
-			return bytes.NewBuffer(urlEncodedBytes), nil
+			return strings.NewReader(urlEncodedString), nil
 		}
 		values, ok := cli.params.(url.Values)
 		if !ok {

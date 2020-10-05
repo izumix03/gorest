@@ -79,8 +79,8 @@ type TerminalOperator interface {
 	URLEncoded(key string, value string) URLEncoded
 	// URLEncodedList replace values if same key
 	URLEncodedList(key string, values []string) URLEncoded
-	// URLEncodedString receives raw data, but never check
-	URLEncodedString(data string) URLEncoded
+	// URLEncodedEscapedString receives raw data, but never check
+	URLEncodedEscapedString(data string) URLEncoded
 
 	MultipartData(key string, value io.Reader, forceMultipart bool) Multipart
 	MultipartAsFormFile(key string, fileName string, reader io.Reader, forceMultipart bool) Multipart
@@ -109,8 +109,8 @@ type URLEncoded interface {
 	URLEncoded(key string, value string) URLEncoded
 	// URLEncodedList replace values if same key
 	URLEncodedList(key string, values []string) URLEncoded
-	// URLEncodedString receives raw data, but never check
-	URLEncodedString(data string) URLEncoded
+	// URLEncodedEscapedString receives raw data, but never check
+	URLEncodedEscapedString(data string) URLEncoded
 	Executor
 }
 

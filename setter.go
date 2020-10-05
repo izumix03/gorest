@@ -80,7 +80,7 @@ func (cli *client) URLEncodedList(key string, values []string) URLEncoded {
 	return cli
 }
 
-func (cli *client) URLEncodedString(data string) URLEncoded {
+func (cli *client) URLEncodedEscapedString(data string) URLEncoded {
 	cli.params = data
 	cli.contentType = urlEncoded
 	cli.hasRawFormUrlEncoded = true

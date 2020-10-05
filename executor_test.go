@@ -337,3 +337,69 @@ func Test_client_Execute_simple_multipart_value_as_file_post(t *testing.T) {
 		t.Fatalf("wrong response, got => %s", body)
 	}
 }
+
+func Test_client_buildParams(t *testing.T) {
+	type fields struct {
+		contentType          contentType
+		params               interface{}
+		hasJsonStruct        bool
+		hasRawFormUrlEncoded bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    io.Reader
+		wantErr bool
+	}{
+		{
+			name: "json_content",
+			fields: fields{
+				contentType:   "application/json",
+				params:        "{\"one\": \"two\"}",
+				hasJsonStruct: false,
+			},
+			want:    strings.NewReader("{\"one\": \"two\"}"),
+			wantErr: false,
+		},
+		{
+			name: "url_encoded_raw",
+			fields: fields{
+				contentType:          "application/x-www-form-urlencoded",
+				params:               "a=1&b=2",
+				hasJsonStruct:        false,
+				hasRawFormUrlEncoded: true,
+			},
+			want:    strings.NewReader("a=1&b=2"),
+			wantErr: false,
+		},
+		{
+			name: "url_encoded",
+			fields: fields{
+				contentType:          "application/x-www-form-urlencoded",
+				params:               "a=1&b=2",
+				hasJsonStruct:        false,
+				hasRawFormUrlEncoded: false,
+			},
+			want:    strings.NewReader("a%3D1%26b%3D2"),
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cli := &client{
+				contentType:          tt.fields.contentType,
+				params:               tt.fields.params,
+				hasJsonStruct:        tt.fields.hasJsonStruct,
+				hasRawFormUrlEncoded: tt.fields.hasRawFormUrlEncoded,
+			}
+			got, err := cli.buildParams()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("buildParams() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("buildParams() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
