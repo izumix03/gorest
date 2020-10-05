@@ -50,7 +50,6 @@ func (cli *client) setupMultipartRequest() (io.Reader, error) {
 				if writer, err = cli.createFormFileAsMultipart(
 					v.key,
 					file.Name(),
-					reader,
 					v.forceMultipart,
 					multipartWriter,
 				); err != nil {
@@ -60,7 +59,6 @@ func (cli *client) setupMultipartRequest() (io.Reader, error) {
 				if writer, err = cli.createFormFileAsMultipart(
 					v.key,
 					v.fileName,
-					reader,
 					v.forceMultipart,
 					multipartWriter,
 				); err != nil {
@@ -92,7 +90,6 @@ func (cli *client) setupMultipartRequest() (io.Reader, error) {
 func (cli *client) createFormFileAsMultipart(
 	fieldName,
 	fileName string,
-	reader io.Reader,
 	forceMultipart bool,
 	writer *mineMultipart.Writer,
 ) (io.Writer, error) {
