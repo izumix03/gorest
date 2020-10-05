@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	mineMultipart "mime/multipart"
-	"net/http"
 	"net/textproto"
 	"os"
 )
@@ -101,25 +100,9 @@ func (cli *client) createFormFileAsMultipart(
 		return writer.CreateFormFile(fieldName, fileName)
 	}
 
-	body := new(bytes.Buffer)
-	multipartWriter := mineMultipart.NewWriter(body)
-
-	cType := func() string {
-		buf := new(bytes.Buffer)
-		if _, err := buf.ReadFrom(reader); err != nil {
-			return "application/octet-stream"
-		}
-
-		return http.DetectContentType(buf.Bytes())
-	}()
-
 	header := make(textproto.MIMEHeader)
 	header.Set("Content-Disposition",
 		fmt.Sprintf(`form-data; name="%s"; filename="%s"`, fieldName, fileName))
-	header.Set("Content-Type", cType)
-	part, err := multipartWriter.CreatePart(header)
-	if err != nil {
-		return nil, err
-	}
-	return part, nil
+	header.Set("Content-Type", string(multipart))
+	return writer.CreatePart(header)
 }

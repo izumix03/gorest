@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/google/go-cmp/cmp"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func Test_client_Execute_simple_json_post(t *testing.T) {
@@ -194,7 +195,7 @@ func Test_client_Execute_simple_multipart_value_post(t *testing.T) {
 		Client(&http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}}).
-		MultipartData("key", strings.NewReader("(1,2,34,55,666)")).
+		MultipartData("key", strings.NewReader("(1,2,34,55,666)"), false).
 		Execute()
 	if err != nil {
 		t.Errorf("failed to post %s", err)
@@ -242,7 +243,7 @@ func Test_client_Execute_simple_multipart_file_post(t *testing.T) {
 			); diff != "" {
 				t.Fatalf("invalid postBody, diff = %s", diff)
 			}
-			if _, err := w.Write([]byte("success")); err != nil {
+			if _, err = w.Write([]byte("success")); err != nil {
 				t.Fatalf("failed to write response %s", err)
 			}
 		}))
@@ -260,7 +261,7 @@ func Test_client_Execute_simple_multipart_file_post(t *testing.T) {
 		Client(&http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}}).
-		MultipartData("key", f).
+		MultipartData("key", f, true).
 		Execute()
 	if err != nil {
 		t.Errorf("failed to post %s", err)
@@ -320,7 +321,7 @@ func Test_client_Execute_simple_multipart_value_as_file_post(t *testing.T) {
 		Client(&http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}}).
-		MultipartAsFormFile("key", fileName, strings.NewReader("header1,header2\nvalue1,value2\n")).
+		MultipartAsFormFile("key", fileName, strings.NewReader("header1,header2\nvalue1,value2\n"), false).
 		Execute()
 	if err != nil {
 		t.Errorf("failed to post %s", err)
