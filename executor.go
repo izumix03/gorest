@@ -82,9 +82,9 @@ func (i *InvalidStatusCodeError) Error() string {
 
 func (cli *client) buildRequest() (*http.Request, error) {
 	endpoint := concat(cli.baseURL, strings.Join(cli.paths, ``))
-	urlParamString := strings.Join(cli.urlParams, `&`)
+	urlParamString := url.QueryEscape(strings.Join(cli.urlParams, `&`))
 	if urlParamString != `` {
-		endpoint = join(endpoint, urlParamString, `?`)
+		endpoint = join(endpoint, urlParamString, url.QueryEscape(`?`))
 	}
 
 	body, err := cli.buildParams()
