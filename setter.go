@@ -87,6 +87,12 @@ func (cli *client) URLEncodedEscapedString(data string) URLEncoded {
 	return cli
 }
 
+func (cli *client) URLEncodedString(data string) URLEncoded {
+	cli.params = data
+	cli.contentType = urlEncoded
+	return cli
+}
+
 func (cli *client) HandleResponse(f func(*http.Request, *http.Response) (*http.Response, error)) ResponseHandler {
 	cli.responseHandler = f
 	return cli

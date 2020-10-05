@@ -383,6 +383,17 @@ func Test_client_buildParams(t *testing.T) {
 			want:    strings.NewReader("a%3D1%26b%3D2"),
 			wantErr: false,
 		},
+		{
+			name: "url_encoded_not_escaped",
+			fields: fields{
+				contentType:          "application/x-www-form-urlencoded",
+				params:               "a=1&b=2",
+				hasJsonStruct:        false,
+				hasRawFormUrlEncoded: false,
+			},
+			want:    strings.NewReader("a%3D1%26b%3D2"),
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

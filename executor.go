@@ -141,6 +141,12 @@ func (cli *client) buildParams() (io.Reader, error) {
 			}
 			return strings.NewReader(urlEncodedString), nil
 		}
+
+		notEscaped, ok := cli.params.(string)
+		if ok {
+			return strings.NewReader(url.QueryEscape(notEscaped)), nil
+		}
+
 		values, ok := cli.params.(url.Values)
 		if !ok {
 			return nil, errors.New(`invalid request body parameters`)
