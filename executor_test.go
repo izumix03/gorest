@@ -355,10 +355,10 @@ func Test_client_buildParams(t *testing.T) {
 			name: "json_content",
 			fields: fields{
 				contentType:   "application/json",
-				params:        "{\"one\": \"two\"}",
+				params:        []byte("{\"one\": \"two\"}"),
 				hasJsonStruct: false,
 			},
-			want:    strings.NewReader("{\"one\": \"two\"}"),
+			want:    bytes.NewBuffer([]byte("{\"one\": \"two\"}")),
 			wantErr: false,
 		},
 		{
@@ -376,9 +376,9 @@ func Test_client_buildParams(t *testing.T) {
 			name: "url_encoded",
 			fields: fields{
 				contentType:          "application/x-www-form-urlencoded",
-				params:               "a=1&b=2",
+				params:               "a%3D1%26b%3D2",
 				hasJsonStruct:        false,
-				hasRawFormUrlEncoded: false,
+				hasRawFormUrlEncoded: true,
 			},
 			want:    strings.NewReader("a%3D1%26b%3D2"),
 			wantErr: false,

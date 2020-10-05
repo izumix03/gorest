@@ -1,6 +1,7 @@
 package gorest
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -122,12 +123,12 @@ func (cli *client) buildParams() (io.Reader, error) {
 		if cli.params == nil {
 			return nil, nil
 		}
-		jsonString, ok := cli.params.(string)
+		jsonBytes, ok := cli.params.([]byte)
 		if !ok {
 			// JSONStruct can receive invalid data...
 			return nil, errors.New("invalid body")
 		}
-		return strings.NewReader(jsonString), nil
+		return bytes.NewBuffer(jsonBytes), nil
 	case urlEncoded:
 		if cli.params == nil {
 			return nil, nil
