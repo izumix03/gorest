@@ -6,6 +6,7 @@ const (
 	put                       = "PUT"
 	jsonContent contentType   = "application/json"
 	urlEncoded  contentType   = "application/x-www-form-urlencoded"
+	multipart   contentType   = "multipart/form-data"
 	notSet      contentType   = ""
 )
 

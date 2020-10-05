@@ -82,8 +82,8 @@ type TerminalOperator interface {
 	// URLEncodedString receives raw data, but never check
 	URLEncodedString(data string) URLEncoded
 
-	MultipartData(key string, value io.Reader) Multipart
-	MultipartAsFormFile(key string, fileName string, reader io.Reader) Multipart
+	MultipartData(key string, value io.Reader, forceMultipart bool) Multipart
+	MultipartAsFormFile(key string, fileName string, reader io.Reader, forceMultipart bool) Multipart
 
 	// HandleResponse require response handler,
 	// if create a new response, MUST close old res.Body
@@ -116,8 +116,8 @@ type URLEncoded interface {
 
 // Multipart provides methods for set multipart data(including file)
 type Multipart interface {
-	MultipartData(key string, value io.Reader) Multipart
-	MultipartAsFormFile(key string, fileName string, reader io.Reader) Multipart
+	MultipartData(key string, value io.Reader, forceMultipart bool) Multipart
+	MultipartAsFormFile(key string, fileName string, reader io.Reader, forceMultipart bool) Multipart
 	Executor
 }
 
